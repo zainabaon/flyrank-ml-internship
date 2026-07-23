@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refresh Priority: Ranking Content for Review Using Search Signals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF8F3;
+    --ink:#1C1F26;
+    --ink-soft:#4A4F5C;
+    --muted:#8A8577;
+    --accent:#0F766E;
+    --accent-soft:#E6F0EE;
+    --rule:#DED8C9;
+    --warn:#B9622A;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.65;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+  header.hero{
+    padding:96px 0 56px;
+    border-bottom:1px solid var(--rule);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:20px;
+  }
+  h1{
+    font-family:'Newsreader', serif;
+    font-size:44px;
+    font-weight:500;
+    line-height:1.15;
+    margin:0 0 24px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:60ch;
+    margin:0 0 32px;
+  }
+  .meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--muted);
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+  section{
+    padding:56px 0;
+    border-bottom:1px solid var(--rule);
+  }
+  section:last-of-type{border-bottom:none;}
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:12px;
+  }
+  h2{
+    font-family:'Newsreader', serif;
+    font-size:28px;
+    font-weight:500;
+    margin:0 0 20px;
+  }
+  h3{
+    font-family:'Newsreader', serif;
+    font-size:19px;
+    font-weight:600;
+    margin:28px 0 10px;
+  }
+  p{margin:0 0 16px; color:var(--ink-soft); font-size:16px;}
+  strong{color:var(--ink); font-weight:600;}
+  ul, ol{padding-left:22px; color:var(--ink-soft);}
+  li{margin-bottom:8px;}
+  a{color:var(--accent); text-decoration:underline; text-decoration-color:var(--rule); text-underline-offset:3px;}
+  a:hover{text-decoration-color:var(--accent);}
+
+  .placeholder{
+    background:#FFF8EC;
+    border:1px dashed #D9B36C;
+    border-radius:6px;
+    padding:18px 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:#8A5A1E;
+    margin:16px 0;
+  }
+  .placeholder .tag{
+    display:inline-block;
+    background:#D9B36C;
+    color:#fff;
+    font-size:10px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:2px 8px;
+    border-radius:3px;
+    margin-bottom:8px;
+  }
+
+  /* Signature element: results receipt */
+  .receipt{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    background:var(--accent-soft);
+    border:1px solid var(--accent);
+    border-radius:8px;
+    padding:24px 28px;
+    margin:24px 0;
+  }
+  .receipt-title{
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:16px;
+  }
+  .receipt-row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px dashed #BFDAD5;
+  }
+  .receipt-row:last-child{border-bottom:none;}
+  .receipt-row .label{color:var(--ink-soft);}
+  .receipt-row .value{
+    font-weight:600;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .receipt-row.win .value{color:var(--accent);}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14.5px;
+    margin:20px 0;
+  }
+  th, td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--rule);
+  }
+  th{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:500;
+  }
+  td{font-variant-numeric:tabular-nums; color:var(--ink-soft);}
+  td.hl{color:var(--accent); font-weight:600;}
+
+  .findings{
+    counter-reset: finding;
+    list-style:none;
+    padding:0;
+  }
+  .findings li{
+    counter-increment: finding;
+    position:relative;
+    padding-left:44px;
+    margin-bottom:20px;
+  }
+  .findings li::before{
+    content: counter(finding);
+    position:absolute;
+    left:0; top:0;
+    width:30px; height:30px;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+
+  footer{
+    padding:48px 0 96px;
+    font-size:13.5px;
+    color:var(--muted);
+  }
+  footer a{color:var(--muted);}
+
+  code{
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--accent-soft);
+    padding:1px 6px;
+    border-radius:4px;
+    font-size:0.9em;
+    color:var(--ink);
+  }
+
+  @media (max-width:600px){
+    h1{font-size:32px;}
+    header.hero{padding:64px 0 40px;}
+    section{padding:40px 0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Search Intelligence &middot; Lane 2 &middot; Refresh / Content Opportunity Scoring</div>
+    <h1>Refresh Priority: Ranking Content for Review Using Search Signals</h1>
+    <p class="subtitle">A decision-support system that ranks content pages for refresh review, built and validated on anonymized FlyRank search performance data.</p>
+    <div class="meta">
+      <span>Zainab Aon</span>
+      <span>FlyRank ML Internship &middot; Applied Search Intelligence</span>
+      <span id="paper-date">DRAFT — in progress</span>
+    </div>
+  </header>
+
+  <section id="abstract">
+    <div class="section-label">Abstract</div>
+    <h2>Five sentences, start to finish</h2>
+    <div class="placeholder">
+      <span class="tag">To finalize in Week 8</span>
+      Write this LAST, once every other section is done — it's the hardest to write first because it summarizes everything. Draft: "Content teams have limited capacity to review pages for refresh, but no reliable way to prioritize which pages matter most. This project asks: which pages should be reviewed first? Using anonymized FlyRank search performance data, I built a ranked scoring system and compared it against a transparent hand-written baseline rule under a client-holdout validation split. [MODEL] outperformed the baseline on Precision@50 by [X], while [OTHER MODEL] did not — showing that added complexity does not automatically help. The result is a decision-support ranking, not a causal or algorithmic claim, intended to help reviewers focus limited attention on the most promising candidates first."
+    </div>
+  </section>
+
+  <section id="intro">
+    <div class="section-label">01 &middot; Introduction</div>
+    <h2>The decision this work supports</h2>
+    <p>Content teams cannot review every page on a site for refresh. Given limited reviewer capacity, the real question is not <em>"is this page declining?"</em> in isolation — it's <strong>which pages should be reviewed first</strong>, given that only a handful can be checked in any given cycle.</p>
+    <p>This project ranks pages by refresh priority so a reviewer with limited time works from the top of a queue down, rather than guessing. The cost of a wrong call is asymmetric: flagging a healthy page wastes a reviewer's time, while missing a genuinely declining, high-traffic page means it keeps losing visibility unreviewed.</p>
+    <p>This is a decision-support tool, not an automated fix. No claim is made that refreshing a flagged page causes it to recover — that would require a causal experiment this data cannot provide.</p>
+  </section>
+
+  <section id="data">
+    <div class="section-label">02 &middot; Data</div>
+    <h2>What this is built on</h2>
+    <p>This project uses the <strong>FlyRank internship warehouse release</strong> (Hugging Face, gated, build <code>flyrank_pseudonymized_warehouse_release_v20260703</code>), specifically:</p>
+    <ul>
+      <li><code>fact_content_daily_performance</code> — daily × client × content grain, month-partitioned (developed against <code>month=2026-03</code>, a mid-panel month; the final month is treated as a sealed test window and was not used for label logic)</li>
+      <li><code>dim_content</code> and <code>dim_clients</code> — join keys and client-level context only, never used as model features</li>
+      <li>The small anonymized starter dataset (<code>content_refresh_anonymized.csv</code>, 30,000 rows) — used for iteration, baseline development, and the modeling comparisons shown in the Results section below</li>
+    </ul>
+    <p><strong>Excluded, deliberately:</strong> FlyRank's own product decision fields (<code>health_score</code>, <code>priority_score</code>, <code>action_type</code>, refresh flags) are not shipped in this release and were never used as features or labels — using them would only teach a model to copy an existing rule rather than discover real signal. No client names, domains, raw URLs, or raw queries appear anywhere in this data or in this paper; all identifiers are pseudonymized hash IDs used for grouping only.</p>
+    <div class="placeholder">
+      <span class="tag">To finalize</span>
+      Add the exact row counts / date span you verified in ML-04 (Query 2 output) once you finalize which data cut (starter vs. warehouse) the final capstone model uses.
+    </div>
+  </section>
+
+  <section id="methodology">
+    <div class="section-label">03 &middot; Methodology</div>
+    <h2>Task, label, features, and validation</h2>
+
+    <h3>Task type</h3>
+    <p>This is a <strong>scoring / ranking problem</strong> built on top of a binary classifier. The deliverable is not a single yes/no decision on one page — it's an ordered queue of all pages, ranked by predicted refresh priority, so a reviewer works top-down within their capacity.</p>
+
+    <h3>Label / proxy</h3>
+    <p>The working label is <code>is_declining_label = (trend_direction == "down")</code> — a same-window proxy, not a true future outcome. This is a known and disclosed limitation (see Limitations below); a stronger future-window label (prior-window features predicting decline over a following window) is the natural next iteration.</p>
+
+    <h3>Baseline (Week 4)</h3>
+    <p>A transparent hand-written rule: flag a page when it is both <strong>stale</strong> (180+ days since last update) and <strong>visible</strong> (500+ impressions in the trailing 90 days). The score is the page's raw impressions, so among qualifying pages, highest-traffic pages rank first.</p>
+    <p>Before trusting this rule, two of its underlying signals were checked directly against the data:</p>
+    <ul>
+      <li><strong>Staleness vs. decline rate</strong> — verdict: <em>MIXED</em>. Decline rate rose from the &lt;30-day bucket through the 90–180-day bucket, but did not continue rising monotonically past 180 days, and the oldest bucket had too few rows (n=5) to trust. Staleness alone is a weak signal past 180 days; it is only useful combined with visibility, which the rule already does.</li>
+      <li><strong>CTR vs. position tier</strong> — verdict: <em>CONFIRMED</em>. Mean CTR fell steadily from top-ranked to lowest-ranked tiers, confirming CTR should only be compared within the same position tier, not across the dataset as a whole.</li>
+    </ul>
+
+    <h3>Model (Week 5)</h3>
+    <p>Three classifiers were trained and compared: Logistic Regression, a depth-limited Decision Tree, and a Random Forest, using six observed, pre-decision features: <code>content_age_days</code>, <code>days_since_last_update</code>, <code>impressions_90d</code>, <code>avg_position</code>, <code>ctr</code>, <code>word_count</code>.</p>
+
+    <h3>Validation design</h3>
+    <p><strong>Client-grouped holdout split</strong> (75/25) — pages from the same client are never split across train and test, verified directly (zero client overlap). This matters because a random row split would let a model partially memorize a client's own baseline traffic patterns rather than learning generalizable signal, inflating apparent performance.</p>
+
+    <h3>Leakage audit</h3>
+    <ul>
+      <li>All six features are observed at the same snapshot as the label — not future-derived.</li>
+      <li><code>trend_pct</code> (which directly determines the label) is deliberately excluded from every feature set.</li>
+      <li>No FlyRank product decision fields were available or used.</li>
+      <li>Client overlap between train and test is checked and confirmed at zero under the grouped split.</li>
+    </ul>
+  </section>
+
+  <section id="results">
+    <div class="section-label">04 &middot; Results</div>
+    <h2>Model vs. baseline, same split, same metric</h2>
+    <p>All methods were evaluated on the identical client-holdout test set (n=7,115 rows, 8 held-out clients) using <strong>Precision@50</strong> — of the top 50 ranked pages, how many were genuinely in the "declining" bucket. This metric was chosen over accuracy because the real use case is a fixed-size review queue, not a judgment across the entire dataset.</p>
+
+    <div class="receipt">
+      <div class="receipt-title">Precision@50 — client-holdout test set</div>
+      <div class="receipt-row"><span class="label">Baseline rule (stale + visible)</span><span class="value">0.560</span></div>
+      <div class="receipt-row win"><span class="label">Logistic Regression</span><span class="value">0.660</span></div>
+      <div class="receipt-row"><span class="label">Decision Tree (depth 5)</span><span class="value">0.520</span></div>
+      <div class="receipt-row"><span class="label">Random Forest</span><span class="value">0.560</span></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Method</th><th>AUC</th><th>Precision@20</th><th>Precision@50</th></tr></thead>
+      <tbody>
+        <tr><td>Baseline rule</td><td>—</td><td>0.500</td><td>0.560</td></tr>
+        <tr><td class="hl">Logistic Regression</td><td>0.540</td><td class="hl">0.650</td><td class="hl">0.660</td></tr>
+        <tr><td>Decision Tree</td><td>0.564</td><td>0.500</td><td>0.520</td></tr>
+        <tr><td>Random Forest</td><td>0.597</td><td>0.550</td><td>0.560</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Logistic Regression was the only method to beat the baseline on Precision@50</strong> (0.660 vs. 0.560). Random Forest had the highest AUC (0.597) but did not exceed the baseline on the top-K ranking metric that actually reflects the review-queue use case — a reminder that added model complexity does not automatically translate into a better ranked output.</p>
+
+    <h3>What the errors look like</h3>
+    <p>Feature importance from the Random Forest model shows <code>impressions_90d</code> (0.30), <code>avg_position</code> (0.23), and <code>content_age_days</code> (0.20) as the strongest signals — while <code>days_since_last_update</code>, the core signal the hand-written baseline relies on most, ranked lowest (0.05). This independently confirms the MIXED verdict found in the Week-4 signal audit: staleness alone is a weak predictor once other signals are available.</p>
+    <p>All models scored only modestly above chance (AUC 0.54–0.60) on the held-out clients — noticeably lower than same-window, non-holdout performance seen earlier in the internship pipeline (~0.75). This gap suggests the relationship between these features and same-window decline is noisier across different clients than within any single client's own history, and reinforces that a genuine future-window label (rather than a same-window proxy) is likely necessary for a more decision-useful, less noisy system.</p>
+  </section>
+
+  <section id="limitations">
+    <div class="section-label">05 &middot; Limitations &amp; honest framing</div>
+    <h2>What this can and cannot claim</h2>
+    <p><strong>What is supported:</strong> on this observed sample and this validation split, Logistic Regression showed a measurably higher Precision@50 than a transparent hand-written rule. This is decision-support evidence for prioritizing a limited review queue — nothing more.</p>
+    <p><strong>What is not supported:</strong></p>
+    <ul>
+      <li>No claim that refreshing a flagged page causes it to recover — that requires a causal experiment, not observational ranking.</li>
+      <li>No claim of having identified a Google ranking factor, or of predicting how any search algorithm works.</li>
+      <li>The working label is a same-window proxy (<code>trend_direction == "down"</code>), not a true future outcome — results describe agreement with a current-state bucket, not a validated forecast.</li>
+      <li>Results are drawn from a single client-holdout split on a bounded sample; they are directional, not a guarantee that the same gap holds on new clients, new time windows, or the full warehouse.</li>
+    </ul>
+  </section>
+
+  <section id="recommendations">
+    <div class="section-label">06 &middot; Ranked recommendations</div>
+    <h2>The action playbook</h2>
+    <div class="placeholder">
+      <span class="tag">To finalize once final model is locked</span>
+      This section should present your final top-N ranked queue (from your capstone-final model, not necessarily the Week-4/5 numbers above) as an actual table: content reference (hashed/pseudonymized only), reason code, suggested action, and a confidence note — mirroring the top-17 review format you already built in ML-07. Summarize the overall pattern (e.g. "X% of flagged pages belonged disproportionately to a small number of clients, suggesting the scoring formula may need per-client normalization").
+    </div>
+  </section>
+
+  <section id="reproducibility">
+    <div class="section-label">07 &middot; Reproducibility</div>
+    <h2>Notebooks and repo</h2>
+    <p>Every step described above is implemented and runnable from the notebooks in this repository:</p>
+    <ul>
+      <li><code>work/notebooks/w01_research_question.ipynb</code> — lane framing and initial evidence</li>
+      <li><code>work/notebooks/w02_ml_task_framing.ipynb</code> — ML task type, target, metric</li>
+      <li><code>work/notebooks/w03_data_contract.ipynb</code> — warehouse data contract, verification queries, leakage trap</li>
+      <li><code>work/notebooks/w04_baseline_score.ipynb</code> — signal checks, baseline rule, ranked queue</li>
+      <li><code>work/notebooks/w05_model.ipynb</code> — model vs. baseline comparison, client-holdout split</li>
+      <li><code>work/notebooks/w06_validation_audit.ipynb</code> — honest-split before/after, leakage audit, claim rewrite</li>
+    </ul>
+    <p>Full repository: <a href="https://github.com/zainabaon/flyrank-ml-internship" target="_blank">github.com/zainabaon/flyrank-ml-internship</a></p>
+  </section>
+
+  <footer>
+    <p>Built on the FlyRank ML Internship dataset — <a href="https://flyrank.ai" target="_blank">flyrank.ai</a></p>
+    <p>Draft in progress &middot; last updated <span id="footer-date"></span></p>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('footer-date').textContent = new Date().toISOString().slice(0,10);
+</script>
+
+</body>
+</html>
