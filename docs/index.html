@@ -155,17 +155,17 @@
   table{
     width:100%;
     border-collapse:collapse;
-    font-size:14.5px;
+    font-size:14px;
     margin:20px 0;
   }
   th, td{
     text-align:left;
-    padding:10px 12px;
+    padding:10px 10px;
     border-bottom:1px solid var(--rule);
   }
   th{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11.5px;
+    font-size:11px;
     letter-spacing:0.06em;
     text-transform:uppercase;
     color:var(--muted);
@@ -173,32 +173,6 @@
   }
   td{font-variant-numeric:tabular-nums; color:var(--ink-soft);}
   td.hl{color:var(--accent); font-weight:600;}
-
-  .findings{
-    counter-reset: finding;
-    list-style:none;
-    padding:0;
-  }
-  .findings li{
-    counter-increment: finding;
-    position:relative;
-    padding-left:44px;
-    margin-bottom:20px;
-  }
-  .findings li::before{
-    content: counter(finding);
-    position:absolute;
-    left:0; top:0;
-    width:30px; height:30px;
-    background:var(--ink);
-    color:var(--paper);
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
-  }
 
   footer{
     padding:48px 0 96px;
@@ -220,6 +194,8 @@
     h1{font-size:32px;}
     header.hero{padding:64px 0 40px;}
     section{padding:40px 0;}
+    table{font-size:12px;}
+    th, td{padding:8px 6px;}
   }
 </style>
 </head>
@@ -233,25 +209,21 @@
     <div class="meta">
       <span>Zainab Aon</span>
       <span>FlyRank ML Internship &middot; Applied Search Intelligence</span>
-      <span id="paper-date">DRAFT — in progress</span>
     </div>
   </header>
 
   <section id="abstract">
     <div class="section-label">Abstract</div>
     <h2>Five sentences, start to finish</h2>
-    <div class="placeholder">
-      <span class="tag">To finalize in Week 8</span>
-      Write this LAST, once every other section is done — it's the hardest to write first because it summarizes everything. Draft: "Content teams have limited capacity to review pages for refresh, but no reliable way to prioritize which pages matter most. This project asks: which pages should be reviewed first? Using anonymized FlyRank search performance data, I built a ranked scoring system and compared it against a transparent hand-written baseline rule under a client-holdout validation split. [MODEL] outperformed the baseline on Precision@50 by [X], while [OTHER MODEL] did not — showing that added complexity does not automatically help. The result is a decision-support ranking, not a causal or algorithmic claim, intended to help reviewers focus limited attention on the most promising candidates first."
-    </div>
+    <p>Content teams have limited capacity to review pages for refresh, but no reliable way to prioritize which pages matter most. This project asks: given a fixed review capacity, which pages should be reviewed first? Using anonymized FlyRank search performance data, I built a ranked scoring system and compared it against a transparent hand-written baseline rule under a client-holdout validation split, with an explicit audit for split leakage and feature leakage. Logistic Regression outperformed the baseline on Precision@50 (0.660 vs. 0.560), while a more complex Random Forest did not &mdash; a result that held up under a repeated, honest before/after validation check. The result is a decision-support ranking, not a causal or algorithmic claim: it surfaces 17 stale, still-visible pages worth a human reviewer's attention first, with reason codes, explicit human-review steps, and a no-go list for what should never be automated from it.</p>
   </section>
 
   <section id="intro">
     <div class="section-label">01 &middot; Introduction</div>
     <h2>The decision this work supports</h2>
-    <p>Content teams cannot review every page on a site for refresh. Given limited reviewer capacity, the real question is not <em>"is this page declining?"</em> in isolation — it's <strong>which pages should be reviewed first</strong>, given that only a handful can be checked in any given cycle.</p>
+    <p>Content teams cannot review every page on a site for refresh. Given limited reviewer capacity, the real question is not <em>"is this page declining?"</em> in isolation &mdash; it's <strong>which pages should be reviewed first</strong>, given that only a handful can be checked in any given cycle.</p>
     <p>This project ranks pages by refresh priority so a reviewer with limited time works from the top of a queue down, rather than guessing. The cost of a wrong call is asymmetric: flagging a healthy page wastes a reviewer's time, while missing a genuinely declining, high-traffic page means it keeps losing visibility unreviewed.</p>
-    <p>This is a decision-support tool, not an automated fix. No claim is made that refreshing a flagged page causes it to recover — that would require a causal experiment this data cannot provide.</p>
+    <p>This is a decision-support tool, not an automated fix. No claim is made that refreshing a flagged page causes it to recover &mdash; that would require a causal experiment this data cannot provide.</p>
   </section>
 
   <section id="data">
@@ -259,15 +231,11 @@
     <h2>What this is built on</h2>
     <p>This project uses the <strong>FlyRank internship warehouse release</strong> (Hugging Face, gated, build <code>flyrank_pseudonymized_warehouse_release_v20260703</code>), specifically:</p>
     <ul>
-      <li><code>fact_content_daily_performance</code> — daily × client × content grain, month-partitioned (developed against <code>month=2026-03</code>, a mid-panel month; the final month is treated as a sealed test window and was not used for label logic)</li>
-      <li><code>dim_content</code> and <code>dim_clients</code> — join keys and client-level context only, never used as model features</li>
-      <li>The small anonymized starter dataset (<code>content_refresh_anonymized.csv</code>, 30,000 rows) — used for iteration, baseline development, and the modeling comparisons shown in the Results section below</li>
+      <li><code>fact_content_daily_performance</code> &mdash; daily &times; client &times; content grain, month-partitioned (developed against <code>month=2026-03</code>, a mid-panel month; the final month is treated as a sealed test window and was not used for label logic)</li>
+      <li><code>dim_content</code> and <code>dim_clients</code> &mdash; join keys and client-level context only, never used as model features</li>
+      <li>The small anonymized starter dataset (<code>content_refresh_anonymized.csv</code>, 30,000 rows) &mdash; used for iteration, baseline development, and the modeling comparisons shown in the Results section below</li>
     </ul>
-    <p><strong>Excluded, deliberately:</strong> FlyRank's own product decision fields (<code>health_score</code>, <code>priority_score</code>, <code>action_type</code>, refresh flags) are not shipped in this release and were never used as features or labels — using them would only teach a model to copy an existing rule rather than discover real signal. No client names, domains, raw URLs, or raw queries appear anywhere in this data or in this paper; all identifiers are pseudonymized hash IDs used for grouping only.</p>
-    <div class="placeholder">
-      <span class="tag">To finalize</span>
-      Add the exact row counts / date span you verified in ML-04 (Query 2 output) once you finalize which data cut (starter vs. warehouse) the final capstone model uses.
-    </div>
+    <p><strong>Excluded, deliberately:</strong> FlyRank's own product decision fields (<code>health_score</code>, <code>priority_score</code>, <code>action_type</code>, refresh flags) are not shipped in this release and were never used as features or labels &mdash; using them would only teach a model to copy an existing rule rather than discover real signal. No client names, domains, raw URLs, or raw queries appear anywhere in this data or in this paper; all identifiers are pseudonymized hash IDs used for grouping only.</p>
   </section>
 
   <section id="methodology">
@@ -275,28 +243,31 @@
     <h2>Task, label, features, and validation</h2>
 
     <h3>Task type</h3>
-    <p>This is a <strong>scoring / ranking problem</strong> built on top of a binary classifier. The deliverable is not a single yes/no decision on one page — it's an ordered queue of all pages, ranked by predicted refresh priority, so a reviewer works top-down within their capacity.</p>
+    <p>This is a <strong>scoring / ranking problem</strong> built on top of a binary classifier. The deliverable is not a single yes/no decision on one page &mdash; it's an ordered queue of all pages, ranked by predicted refresh priority, so a reviewer works top-down within their capacity.</p>
 
     <h3>Label / proxy</h3>
-    <p>The working label is <code>is_declining_label = (trend_direction == "down")</code> — a same-window proxy, not a true future outcome. This is a known and disclosed limitation (see Limitations below); a stronger future-window label (prior-window features predicting decline over a following window) is the natural next iteration.</p>
+    <p>The working label is <code>is_declining_label = (trend_direction == "down")</code> &mdash; a same-window proxy, not a true future outcome. This is a known and disclosed limitation (see Limitations below); a stronger future-window label (prior-window features predicting decline over a following window) is the natural next iteration.</p>
 
-    <h3>Baseline (Week 4)</h3>
+    <h3>Baseline</h3>
     <p>A transparent hand-written rule: flag a page when it is both <strong>stale</strong> (180+ days since last update) and <strong>visible</strong> (500+ impressions in the trailing 90 days). The score is the page's raw impressions, so among qualifying pages, highest-traffic pages rank first.</p>
-    <p>Before trusting this rule, two of its underlying signals were checked directly against the data:</p>
+    <p>Before trusting this rule, its underlying signals were checked directly against the data:</p>
     <ul>
-      <li><strong>Staleness vs. decline rate</strong> — verdict: <em>MIXED</em>. Decline rate rose from the &lt;30-day bucket through the 90–180-day bucket, but did not continue rising monotonically past 180 days, and the oldest bucket had too few rows (n=5) to trust. Staleness alone is a weak signal past 180 days; it is only useful combined with visibility, which the rule already does.</li>
-      <li><strong>CTR vs. position tier</strong> — verdict: <em>CONFIRMED</em>. Mean CTR fell steadily from top-ranked to lowest-ranked tiers, confirming CTR should only be compared within the same position tier, not across the dataset as a whole.</li>
+      <li><strong>Staleness vs. decline rate</strong> &mdash; verdict: <em>MIXED</em>. Decline rate rose from the &lt;30-day bucket through the 90&ndash;180-day bucket, but did not continue rising monotonically past 180 days, and the oldest bucket had too few rows (n=5) to trust. Staleness alone is a weak signal past 180 days; it is only useful combined with visibility, which the rule already does.</li>
+      <li><strong>CTR vs. position tier</strong> &mdash; verdict: <em>CONFIRMED</em>. Mean CTR fell steadily from top-ranked to lowest-ranked tiers, confirming CTR should only be compared within the same position tier, not across the dataset as a whole.</li>
+      <li><strong>Word count vs. decline rate</strong> &mdash; verdict: <em>OPPOSITE</em> of the common belief that longer content is safer. Decline rate was lowest for the shortest pages and rose steadily with length.</li>
+      <li><strong>Content age vs. decline rate</strong> &mdash; verdict: <em>CONFIRMED</em>, in a counter-intuitive direction: the newest pages declined most often, likely reflecting early volatility before traffic stabilizes, rather than a quality problem with new content.</li>
     </ul>
 
-    <h3>Model (Week 5)</h3>
+    <h3>Model</h3>
     <p>Three classifiers were trained and compared: Logistic Regression, a depth-limited Decision Tree, and a Random Forest, using six observed, pre-decision features: <code>content_age_days</code>, <code>days_since_last_update</code>, <code>impressions_90d</code>, <code>avg_position</code>, <code>ctr</code>, <code>word_count</code>.</p>
 
     <h3>Validation design</h3>
-    <p><strong>Client-grouped holdout split</strong> (75/25) — pages from the same client are never split across train and test, verified directly (zero client overlap). This matters because a random row split would let a model partially memorize a client's own baseline traffic patterns rather than learning generalizable signal, inflating apparent performance.</p>
+    <p><strong>Client-grouped holdout split</strong> (75/25) &mdash; pages from the same client are never split across train and test, verified directly (zero client overlap). This matters because a random row split would let a model partially memorize a client's own baseline traffic patterns rather than learning generalizable signal, inflating apparent performance.</p>
+    <p>This was directly tested: a naive random split (32 clients overlapping between train/test) produced AUC = 0.603, while the honest client-grouped split (zero overlap) produced AUC = 0.540 &mdash; confirming the naive split did inflate apparent discrimination. Interestingly, Precision@50 moved the other way (0.640 naive vs. 0.660 grouped), showing that AUC and top-K precision can disagree, and that checking a single metric alone can tell a misleading story.</p>
 
     <h3>Leakage audit</h3>
     <ul>
-      <li>All six features are observed at the same snapshot as the label — not future-derived.</li>
+      <li>All six features are observed at the same snapshot as the label &mdash; not future-derived.</li>
       <li><code>trend_pct</code> (which directly determines the label) is deliberately excluded from every feature set.</li>
       <li>No FlyRank product decision fields were available or used.</li>
       <li>Client overlap between train and test is checked and confirmed at zero under the grouped split.</li>
@@ -306,10 +277,10 @@
   <section id="results">
     <div class="section-label">04 &middot; Results</div>
     <h2>Model vs. baseline, same split, same metric</h2>
-    <p>All methods were evaluated on the identical client-holdout test set (n=7,115 rows, 8 held-out clients) using <strong>Precision@50</strong> — of the top 50 ranked pages, how many were genuinely in the "declining" bucket. This metric was chosen over accuracy because the real use case is a fixed-size review queue, not a judgment across the entire dataset.</p>
+    <p>All methods were evaluated on the identical client-holdout test set (n=7,115 rows, 8 held-out clients) using <strong>Precision@50</strong> &mdash; of the top 50 ranked pages, how many were genuinely in the "declining" bucket. This metric was chosen over accuracy because the real use case is a fixed-size review queue, not a judgment across the entire dataset.</p>
 
     <div class="receipt">
-      <div class="receipt-title">Precision@50 — client-holdout test set</div>
+      <div class="receipt-title">Precision@50 &mdash; client-holdout test set</div>
       <div class="receipt-row"><span class="label">Baseline rule (stale + visible)</span><span class="value">0.560</span></div>
       <div class="receipt-row win"><span class="label">Logistic Regression</span><span class="value">0.660</span></div>
       <div class="receipt-row"><span class="label">Decision Tree (depth 5)</span><span class="value">0.520</span></div>
@@ -317,31 +288,31 @@
     </div>
 
     <table>
-      <thead><tr><th>Method</th><th>AUC</th><th>Precision@20</th><th>Precision@50</th></tr></thead>
+      <thead><tr><th>Method</th><th>AUC</th><th>P@20</th><th>P@50</th></tr></thead>
       <tbody>
-        <tr><td>Baseline rule</td><td>—</td><td>0.500</td><td>0.560</td></tr>
+        <tr><td>Baseline rule</td><td>&mdash;</td><td>0.500</td><td>0.560</td></tr>
         <tr><td class="hl">Logistic Regression</td><td>0.540</td><td class="hl">0.650</td><td class="hl">0.660</td></tr>
         <tr><td>Decision Tree</td><td>0.564</td><td>0.500</td><td>0.520</td></tr>
         <tr><td>Random Forest</td><td>0.597</td><td>0.550</td><td>0.560</td></tr>
       </tbody>
     </table>
 
-    <p><strong>Logistic Regression was the only method to beat the baseline on Precision@50</strong> (0.660 vs. 0.560). Random Forest had the highest AUC (0.597) but did not exceed the baseline on the top-K ranking metric that actually reflects the review-queue use case — a reminder that added model complexity does not automatically translate into a better ranked output.</p>
+    <p><strong>Logistic Regression was the only method to beat the baseline on Precision@50</strong> (0.660 vs. 0.560). Random Forest had the highest AUC (0.597) but did not exceed the baseline on the top-K ranking metric that actually reflects the review-queue use case &mdash; a reminder that added model complexity does not automatically translate into a better ranked output.</p>
 
     <h3>What the errors look like</h3>
-    <p>Feature importance from the Random Forest model shows <code>impressions_90d</code> (0.30), <code>avg_position</code> (0.23), and <code>content_age_days</code> (0.20) as the strongest signals — while <code>days_since_last_update</code>, the core signal the hand-written baseline relies on most, ranked lowest (0.05). This independently confirms the MIXED verdict found in the Week-4 signal audit: staleness alone is a weak predictor once other signals are available.</p>
-    <p>All models scored only modestly above chance (AUC 0.54–0.60) on the held-out clients — noticeably lower than same-window, non-holdout performance seen earlier in the internship pipeline (~0.75). This gap suggests the relationship between these features and same-window decline is noisier across different clients than within any single client's own history, and reinforces that a genuine future-window label (rather than a same-window proxy) is likely necessary for a more decision-useful, less noisy system.</p>
+    <p>Feature importance from the Random Forest model shows <code>impressions_90d</code> (0.30), <code>avg_position</code> (0.23), and <code>content_age_days</code> (0.20) as the strongest signals &mdash; while <code>days_since_last_update</code>, the core signal the hand-written baseline relies on most, ranked lowest (0.05). This independently confirms the MIXED verdict found in the signal audit: staleness alone is a weak predictor once other signals are available.</p>
+    <p>All models scored only modestly above chance (AUC 0.54&ndash;0.60) on the held-out clients. This gap suggests the relationship between these features and same-window decline is noisier across different clients than within any single client's own history, and reinforces that a genuine future-window label (rather than a same-window proxy) is likely necessary for a more decision-useful, less noisy system.</p>
   </section>
 
   <section id="limitations">
     <div class="section-label">05 &middot; Limitations &amp; honest framing</div>
     <h2>What this can and cannot claim</h2>
-    <p><strong>What is supported:</strong> on this observed sample and this validation split, Logistic Regression showed a measurably higher Precision@50 than a transparent hand-written rule. This is decision-support evidence for prioritizing a limited review queue — nothing more.</p>
+    <p><strong>What is supported:</strong> on this observed sample and this validation split, Logistic Regression showed a measurably higher Precision@50 than a transparent hand-written rule, and this held up under a repeated honest-split check. This is decision-support evidence for prioritizing a limited review queue &mdash; nothing more.</p>
     <p><strong>What is not supported:</strong></p>
     <ul>
-      <li>No claim that refreshing a flagged page causes it to recover — that requires a causal experiment, not observational ranking.</li>
+      <li>No claim that refreshing a flagged page causes it to recover &mdash; that requires a causal experiment, not observational ranking.</li>
       <li>No claim of having identified a Google ranking factor, or of predicting how any search algorithm works.</li>
-      <li>The working label is a same-window proxy (<code>trend_direction == "down"</code>), not a true future outcome — results describe agreement with a current-state bucket, not a validated forecast.</li>
+      <li>The working label is a same-window proxy (<code>trend_direction == "down"</code>), not a true future outcome &mdash; results describe agreement with a current-state bucket, not a validated forecast.</li>
       <li>Results are drawn from a single client-holdout split on a bounded sample; they are directional, not a guarantee that the same gap holds on new clients, new time windows, or the full warehouse.</li>
     </ul>
   </section>
@@ -349,10 +320,39 @@
   <section id="recommendations">
     <div class="section-label">06 &middot; Ranked recommendations</div>
     <h2>The action playbook</h2>
-    <div class="placeholder">
-      <span class="tag">To finalize once final model is locked</span>
-      This section should present your final top-N ranked queue (from your capstone-final model, not necessarily the Week-4/5 numbers above) as an actual table: content reference (hashed/pseudonymized only), reason code, suggested action, and a confidence note — mirroring the top-17 review format you already built in ML-07. Summarize the overall pattern (e.g. "X% of flagged pages belonged disproportionately to a small number of clients, suggesting the scoring formula may need per-client normalization").
-    </div>
+    <p>Applying the validated baseline rule to the full 30,000-row sample produces a narrow, high-confidence queue: <strong>17 pages</strong> qualify as both stale (180+ days since last update) and visible (500+ impressions in the trailing 90 days), earning the reason code <code>stale_visible_page</code> and the action <code>review_for_refresh</code>. The top 10, ranked by traffic at stake:</p>
+
+    <table>
+      <thead><tr><th>Content ref.</th><th>Score</th><th>Impr. (90d)</th><th>Days stale</th><th>Avg. pos.</th><th>CTR</th></tr></thead>
+      <tbody>
+        <tr><td>content_cf56&hellip;e282</td><td class="hl">61,678</td><td>61,678</td><td>194</td><td>19.7</td><td>0.15</td></tr>
+        <tr><td>content_7368&hellip;7a310</td><td class="hl">59,472</td><td>59,472</td><td>194</td><td>24.8</td><td>0.13</td></tr>
+        <tr><td>content_1bfa&hellip;ff26c</td><td class="hl">25,715</td><td>25,715</td><td>194</td><td>22.2</td><td>0.23</td></tr>
+        <tr><td>content_0a91&hellip;b491d14</td><td>13,299</td><td>13,299</td><td>193</td><td>10.5</td><td>0.49</td></tr>
+        <tr><td>content_5fee&hellip;994adb</td><td>7,812</td><td>7,812</td><td>194</td><td>39.0</td><td>0.01</td></tr>
+        <tr><td>content_c2d9&hellip;d83eaa</td><td>7,558</td><td>7,558</td><td>193</td><td>17.9</td><td>0.20</td></tr>
+        <tr><td>content_b16b&hellip;307b39</td><td>4,590</td><td>4,590</td><td>194</td><td>31.0</td><td>0.00</td></tr>
+        <tr><td>content_fe16&hellip;55cd13d</td><td>4,556</td><td>4,556</td><td>194</td><td>16.4</td><td>0.33</td></tr>
+        <tr><td>content_ecb6&hellip;215e79fd</td><td>4,429</td><td>4,429</td><td>194</td><td>25.3</td><td>0.38</td></tr>
+        <tr><td>content_928a&hellip;f3e22c80</td><td>1,697</td><td>1,697</td><td>193</td><td>15.8</td><td>0.12</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Pattern worth flagging:</strong> 12 of the 17 flagged pages (71%) belong to a single client. This may reflect a genuine concentration of stale, high-traffic content at that client &mdash; or it may reveal that the scoring formula, which multiplies by raw impression count, structurally favors whichever client has the largest overall traffic. A per-client-normalized score is a natural next iteration.</p>
+
+    <h3>Human review required before acting</h3>
+    <ul>
+      <li>Confirm the page isn't intentionally evergreen or rarely-updated by design.</li>
+      <li>Rule out seasonality or consolidation (a sibling page absorbing the traffic) as the real cause of any observed decline.</li>
+      <li>Check whether avg_position and CTR already look healthy despite staleness &mdash; if so, a refresh may not be the priority the score suggests.</li>
+    </ul>
+
+    <h3>What should never be automated from this queue</h3>
+    <ul>
+      <li>Auto-publishing content changes without human review &mdash; this queue prioritizes <em>review</em>, not unattended action.</li>
+      <li>Using this score to justify removing or de-indexing a page.</li>
+      <li>Comparing raw scores across clients to judge relative performance, since the formula is not client-normalized.</li>
+    </ul>
   </section>
 
   <section id="reproducibility">
@@ -360,19 +360,22 @@
     <h2>Notebooks and repo</h2>
     <p>Every step described above is implemented and runnable from the notebooks in this repository:</p>
     <ul>
-      <li><code>work/notebooks/w01_research_question.ipynb</code> — lane framing and initial evidence</li>
-      <li><code>work/notebooks/w02_ml_task_framing.ipynb</code> — ML task type, target, metric</li>
-      <li><code>work/notebooks/w03_data_contract.ipynb</code> — warehouse data contract, verification queries, leakage trap</li>
-      <li><code>work/notebooks/w04_baseline_score.ipynb</code> — signal checks, baseline rule, ranked queue</li>
-      <li><code>work/notebooks/w05_model.ipynb</code> — model vs. baseline comparison, client-holdout split</li>
-      <li><code>work/notebooks/w06_validation_audit.ipynb</code> — honest-split before/after, leakage audit, claim rewrite</li>
+      <li><code>work/notebooks/w01_research_question.ipynb</code> &mdash; lane framing and initial evidence</li>
+      <li><code>work/notebooks/w02_ml_task_framing.ipynb</code> &mdash; ML task type, target, metric</li>
+      <li><code>work/notebooks/w03_data_contract.ipynb</code> &mdash; warehouse data contract, verification queries, leakage trap</li>
+      <li><code>work/notebooks/w03_feature_leakage_check.ipynb</code> &mdash; feature vector build and leakage hunt</li>
+      <li><code>work/notebooks/w04_baseline_score.ipynb</code> &mdash; signal checks, baseline rule, ranked queue</li>
+      <li><code>work/notebooks/w04_signal_audit.ipynb</code> &mdash; distributions, signal tests, flag-linked test</li>
+      <li><code>work/notebooks/w05_model.ipynb</code> &mdash; model vs. baseline comparison, client-holdout split</li>
+      <li><code>work/notebooks/w06_validation_audit.ipynb</code> &mdash; honest-split before/after, leakage audit, claim rewrite</li>
+      <li><code>work/notebooks/w07_action_playbook.ipynb</code> &mdash; ranked actions, human review, monitoring triggers</li>
     </ul>
     <p>Full repository: <a href="https://github.com/zainabaon/flyrank-ml-internship" target="_blank">github.com/zainabaon/flyrank-ml-internship</a></p>
   </section>
 
   <footer>
-    <p>Built on the FlyRank ML Internship dataset — <a href="https://flyrank.ai" target="_blank">flyrank.ai</a></p>
-    <p>Draft in progress &middot; last updated <span id="footer-date"></span></p>
+    <p>Built on the FlyRank ML Internship dataset &mdash; <a href="https://flyrank.ai" target="_blank">flyrank.ai</a></p>
+    <p>Last updated <span id="footer-date"></span></p>
   </footer>
 </div>
 
