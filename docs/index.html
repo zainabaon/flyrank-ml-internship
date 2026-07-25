@@ -304,6 +304,15 @@
     <p>All models scored only modestly above chance (AUC 0.54&ndash;0.60) on the held-out clients. This gap suggests the relationship between these features and same-window decline is noisier across different clients than within any single client's own history, and reinforces that a genuine future-window label (rather than a same-window proxy) is likely necessary for a more decision-useful, less noisy system.</p>
   </section>
 
+  <section id="validation-audit">
+    <div class="section-label">04.5 &middot; Validation self-audit</div>
+    <h2>Auditing my own claims the way I audited the paper</h2>
+    <p>Before finalizing results, this project's own model comparison was re-run under two split designs to test whether the reported gap over the baseline was real or an artifact of a leaky validation setup. A naive random split (which allowed 32 clients to appear in both train and test) produced AUC = 0.603 and Precision@50 = 0.640. The honest client-grouped split (zero client overlap, confirmed directly) produced AUC = 0.540 and Precision@50 = 0.660.</p>
+    <p>This is a genuinely mixed result, reported here without smoothing it into a cleaner story: AUC dropped under the honest split, consistent with the model partially memorizing client-specific patterns under the naive split &mdash; but Precision@50, the metric that actually matters for a fixed-size review queue, moved slightly upward. Two different metrics disagreed, which is itself the finding: a single metric checked in isolation can tell a misleading story, and the top-K precision this project's use case depends on held up under the stricter, honest validation design.</p>
+    <p>A parallel leakage audit on the final feature set confirmed: no feature is calculated after the decision point, no FlyRank product decision field was available or used, and the label-defining field (<code>trend_pct</code>) is deliberately excluded from every feature set used.</p>
+    <p>Two findings from FlyRank's own published research were also audited with the same standard applied here to my own work. The "Freshness Multiplier" finding (3.2x health-score boost, 57x impression boost from timely refresh) was checked for whether its comparison isolates a genuine refresh effect or reflects selection bias in which pages editors chose to refresh. The feature-importance finding (Average Position as the top predictor of health score) was checked for label leakage, since position is one of the components the health score itself is built from &mdash; a pattern matching the leakage test performed on this project's own features.</p>
+  </section>
+
   <section id="limitations">
     <div class="section-label">05 &middot; Limitations &amp; honest framing</div>
     <h2>What this can and cannot claim</h2>
